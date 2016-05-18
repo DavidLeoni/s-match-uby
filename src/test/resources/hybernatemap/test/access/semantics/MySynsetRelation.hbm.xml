@@ -2,7 +2,7 @@
  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
 "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
 <hibernate-mapping>  
-<class name="it.unitn.disi.smatch.oracles.uby.test.experimental.ExperimentalSynsetRelation" 
+<class name="it.unitn.disi.smatch.oracles.uby.test.experimental.MySynsetRelation" 
 	   table="SynsetRelation" 
 	   node="SynsetRelation" 
 	   dynamic-insert="true">
@@ -31,8 +31,7 @@
 	<many-to-one name="source" class="de.tudarmstadt.ukp.lmf.model.semantics.Synset" column="synsetId"
 			insert="false" update="false"/>
 			
-	<!--  <property name="depth" column="depth" node="@depth" type="int"/> -->
-	<property name="prova" column="prova" node="@prova" type="string"/>
+	<property name="myField" column="myField" node="@myField" type="string"/>
 	
 </class>
 

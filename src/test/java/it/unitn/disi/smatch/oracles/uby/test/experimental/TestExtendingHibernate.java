@@ -23,8 +23,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.io.IOUtils;
-import org.dom4j.io.SAXReader;
 import org.hibernate.SQLQuery;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.service.ServiceRegistryBuilder;
@@ -39,13 +37,15 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import de.tudarmstadt.ukp.lmf.api.Uby;
 import de.tudarmstadt.ukp.lmf.hibernate.HibernateConnect;
 import de.tudarmstadt.ukp.lmf.hibernate.UBYH2Dialect;
+import de.tudarmstadt.ukp.lmf.model.core.LexicalResource;
+import de.tudarmstadt.ukp.lmf.model.core.Lexicon;
 import de.tudarmstadt.ukp.lmf.model.semantics.SynsetRelation;
 import de.tudarmstadt.ukp.lmf.transform.DBConfig;
 import de.tudarmstadt.ukp.lmf.transform.UBYHibernateTransformer;
 import de.tudarmstadt.ukp.lmf.transform.XMLToDBTransformer;
 
 /**
- * Tests to check we can extend lmf model with extra attributes we need
+ * Experiments to check we can extend lmf model with extra attributes we need
  * 
  * @since 0.1
  */
@@ -84,8 +84,7 @@ public class TestExtendingHibernate {
 	}
 	
 	private static class ExtendedUby extends Uby {		
-		
-		
+				
 		
 		public ExtendedUby(DBConfig dbConfig) {
 			super(dbConfig);		
@@ -149,6 +148,11 @@ public class TestExtendingHibernate {
 	
 	private static Configuration getConfiguration(DBConfig dbConfig) {
 
+		Lexicon lx;
+		
+		LexicalResource lr;
+		
+				
 		if (cachedHibernateConfigurations.get(dbConfig) != null){
 			log.debug("Returning cached configuration.");
 			return cachedHibernateConfigurations.get(dbConfig);
@@ -219,7 +223,7 @@ public class TestExtendingHibernate {
 	}
 
 	
-	MySynsetRelation loadDb(){
+	private MySynsetRelation loadDb(){
 
 		try {
 			createTables(dbConfig);
@@ -265,10 +269,7 @@ public class TestExtendingHibernate {
 		
 	};
 	
-	/**
-	 * 
-	 *
-	 */
+
 	@Test
 	public void testHibernate() {
 		

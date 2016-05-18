@@ -40,16 +40,16 @@ import it.unitn.disi.smatch.oracles.SenseMatcherException;
  * @author David Leoni
  *
  */
-public class UbyLinguisticOracle implements ILinguisticOracle, ISenseMatcher {
+public class SmuLinguisticOracle implements ILinguisticOracle, ISenseMatcher {
 
-	private static final Logger log = LoggerFactory.getLogger(UbyLinguisticOracle.class);
+	private static final Logger log = LoggerFactory.getLogger(SmuLinguisticOracle.class);
 	
-	private Uby uby;
+	private SmuUby uby;
 
 	/**
 	 * Creates an empty H2 in-memory database
 	 */
-	public UbyLinguisticOracle() {
+	public SmuLinguisticOracle() {
 		this((String) null);
 	}
 	
@@ -59,45 +59,38 @@ public class UbyLinguisticOracle implements ILinguisticOracle, ISenseMatcher {
 	 * will be empty.
 	 * todo throws what?
 	 */
-	public UbyLinguisticOracle(String lmfXmlPath) {
+	public SmuLinguisticOracle(String lmfXmlPath) {
 		this(new DBConfig("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1", "org.h2.Driver",
 			 UBYH2Dialect.class.getName(), "root", "pass", true),
 			 lmfXmlPath);			
 	}
 
-	public UbyLinguisticOracle(DBConfig dbConfig, String lmfXmlPath) {
+	public SmuLinguisticOracle(DBConfig dbConfig, String lmfXmlPath) {
 		
 		Objects.requireNonNull(dbConfig);
 
 		try {
-			LMFDBUtils.createTables(dbConfig);
+			SmuUtils.createTables(dbConfig);
 		} catch (FileNotFoundException e) {
 			throw new RuntimeException("Couldn't create tables in database "+ dbConfig.getJdbc_url() + "!", e); // todo what about
 												// DisiRuntimeException?
 		}			
 
-		uby = new UbyQuickAPI(dbConfig);
+		uby = new SmuUby(dbConfig);
 		
 		if (lmfXmlPath != null){
-			loadLmfXml(lmfXmlPath, "UbyTestTodo"); // todo name meaning ?
+			uby.loadLmfXml(lmfXmlPath, "UbyTestTodo"); // todo name meaning ?
 		}
 		
 		try {
-			augmentGraph();
+			uby.augmentGraph();
 		} catch (Exception ex) {
 			log.error("Error while augmenting graph with computed edges!" ,ex);
 		}
 		
 	}
 	
-	/**
-	 * Augments the graph with is-a transitive closure and eventally adds symmetric 
-	 * hyperym/hyponim relations.  
-	 */
-	// todo what about provenance? todo instances?
-	private void augmentGraph(){
-		
-	}
+
 
 	@Override
 	public char getRelation(List<ISense> sourceSenses, List<ISense> targetSenses) throws SenseMatcherException {
@@ -154,7 +147,7 @@ public class UbyLinguisticOracle implements ILinguisticOracle, ISenseMatcher {
 			throw new LinguisticOracleException("Couldn't find provided id!", ex);
 		}
 		try {		
-			return new UbySense(ubysyn, this);
+			return new SmuSense(ubysyn, this);
 		} catch (Exception ex){
 			throw new LinguisticOracleException("Error while creating a UbySense!", ex);
 		}
@@ -166,22 +159,10 @@ public class UbyLinguisticOracle implements ILinguisticOracle, ISenseMatcher {
 	public List<List<String>> getMultiwords(String beginning) throws LinguisticOracleException {
 		throw new UnsupportedOperationException("TODO - developer forgot to implement the method!");
 	}
-	
-	/**
-	 * 
-	 * @param filepath
-	 * @param lexicalResourceName todo meaning?  name seems not be required to be in the xml
-	 */
-	public void loadLmfXml(String filepath, String lexicalResourceName){
-		
-		XMLToDBTransformer trans = new XMLToDBTransformer(uby.getDbConfig());
-		
-		try {
-			trans.transform(new File(filepath),lexicalResourceName); 
-		} catch (Exception ex){
-			throw new RuntimeException("Error while loading lmf xml " + filepath, ex);
-		}		
-	}
 
+
+	public SmuUby getUby(){
+		return uby;
+	}
 
 }
