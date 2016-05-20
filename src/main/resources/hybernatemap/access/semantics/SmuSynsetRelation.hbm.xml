@@ -32,6 +32,7 @@
 			insert="false" update="false"/>
 			
 	<property name="depth" column="depth" node="@depth" type="int"/>
+	<property name="provenance" column="provenance" node="@provenance" type="string"/>	
 	
 </class>
 

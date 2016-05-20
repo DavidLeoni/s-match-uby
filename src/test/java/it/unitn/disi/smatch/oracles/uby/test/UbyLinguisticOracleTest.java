@@ -135,20 +135,21 @@ public class UbyLinguisticOracleTest {
 		} catch (FileNotFoundException e) {
 			throw new RuntimeException("Couldn't create tables in database " + dbConfig.getJdbc_url() + "!", e); // todo
 		}
-
 		
 		LexicalResource lexicalResource = new LexicalResource();
 		Lexicon lexicon = new Lexicon();
+		lexicalResource.addLexicon(lexicon);
 		lexicon.setId("lexicon 1");
 		LexicalEntry lexicalEntry = new LexicalEntry();
+		lexicon.addLexicalEntry(lexicalEntry);
 		lexicalEntry.setId("lexicalEntry 1");
 		Synset synset = new Synset();
+		lexicon.getSynsets().add(synset);
 		synset.setId("synset 1");
 		SmuSynsetRelation synsetRelation = new SmuSynsetRelation();
 		synsetRelation.setDepth(3);
-		synset.getSynsetRelations().add(synsetRelation);
-		lexicon.getSynsets().add(synset);
-		lexicon.addLexicalEntry(lexicalEntry);
+		synsetRelation.setProvenance("a");
+		synset.getSynsetRelations().add(synsetRelation);			
 
 		SmuUtils.saveLexicalResourceToDb(dbConfig, lexicalResource, "lexical resource 1");
 
@@ -171,6 +172,7 @@ public class UbyLinguisticOracleTest {
 		SmuSynsetRelation myRel = (SmuSynsetRelation) rel;
 		
 		assertEquals (3, ((SmuSynsetRelation) rel).getDepth());
+		assertEquals ("a", ((SmuSynsetRelation) rel).getProvenance());
 	
 	};
 

@@ -3,6 +3,10 @@ package it.unitn.disi.smatch.oracles.uby;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -467,7 +471,6 @@ public final class SmuUtils {
 
 	/**
 	 * 
-	 * 
 	 * Saves a LexicalResource complete with all the lexicons, synsets, etc into
 	 * a database. This method is suitable only for small lexical resources and
 	 * generally for testing purposes. If you have a big resource, stream the loading by 
@@ -482,13 +485,19 @@ public final class SmuUtils {
 	 * @throws SmuException
 	 * @since 0.1
 	 */
-	public static void saveLexicalResourceToDb(DBConfig dbConfig, LexicalResource lexicalResource,
+	public static void saveLexicalResourceToDb(
+			DBConfig dbConfig, 
+			LexicalResource lexicalResource,
 			String lexicalResourceId) {
+		log.info("Going to save lexical resource to database...");
 		try {
 			new JavaToDbTransformer(dbConfig, lexicalResource, lexicalResourceId).transform();
 		} catch (Exception ex) {
-			throw new SmuException("Something went wrong when importing lexical resource " + lexicalResourceId + " !",
+			throw new SmuException("Error when importing lexical resource " + lexicalResourceId + " !",
 					ex);
 		}
+		log.info("Done saving.");
 	}
+	
+ 
 }

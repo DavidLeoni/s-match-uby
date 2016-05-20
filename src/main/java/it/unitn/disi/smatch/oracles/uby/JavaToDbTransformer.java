@@ -8,6 +8,9 @@ import java.util.Iterator;
 
 import javax.annotation.Nullable;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import de.tudarmstadt.ukp.lmf.model.core.LexicalEntry;
 import de.tudarmstadt.ukp.lmf.model.core.LexicalResource;
 import de.tudarmstadt.ukp.lmf.model.core.Lexicon;
@@ -31,6 +34,8 @@ import de.tudarmstadt.ukp.lmf.transform.LMFDBTransformer;
  * @author David Leoni
  */
 class JavaToDbTransformer extends LMFDBTransformer {
+	
+	private static final Logger log = LoggerFactory.getLogger(JavaToDbTransformer.class);
 
 	private LexicalResource lexicalResource;
 	private String lexicalResourceId;
@@ -75,6 +80,7 @@ class JavaToDbTransformer extends LMFDBTransformer {
 	protected Lexicon createNextLexicon() {
 		if (lexiconIter.hasNext()) {
 			Lexicon lexicon = lexiconIter.next();
+			log.info("Creating Lexicon " + lexicon.getId());
 			subcategorizationFrameIter = lexicon.getSubcategorizationFrames().iterator();
 			subcategorizationFrameSetIter = lexicon.getSubcategorizationFrameSets().iterator();
 			lexicalEntryIter = lexicon.getLexicalEntries().iterator();
@@ -106,7 +112,7 @@ class JavaToDbTransformer extends LMFDBTransformer {
 	@Nullable
 	private static <T> T next(Iterator<T> iter) {
 		if (iter.hasNext()) {
-			return iter.next();
+			return  iter.next();
 		} else {
 			return null;
 		}

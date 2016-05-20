@@ -173,7 +173,7 @@ public class TestExtendingHibernate {
 		PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver(cl);
 		Resource[] mappings = null;
 		try {
-			mappings = resolver.getResources("hibernatemap/access/**/*.hbm.xml");
+			mappings = resolver.getResources("hibernatemap/test/access/**/*.hbm.xml");
 			for (Resource mapping : mappings) {
 				boolean isCustomized = false;
 				for (String c : customClassMappings.keySet()){
@@ -272,7 +272,6 @@ public class TestExtendingHibernate {
 
 	@Test
 	public void testHibernate() {
-		
 		MySynsetRelation myRel = loadDb();
 		
 		// sic - loading from xml doesn't pick the custom values..

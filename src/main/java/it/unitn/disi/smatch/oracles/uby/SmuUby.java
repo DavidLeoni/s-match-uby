@@ -8,6 +8,8 @@ import org.hibernate.ScrollableResults;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.service.ServiceRegistryBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.tudarmstadt.ukp.lmf.api.Uby;
 import de.tudarmstadt.ukp.lmf.model.semantics.Synset;
@@ -19,8 +21,12 @@ import de.tudarmstadt.ukp.lmf.transform.XMLToDBTransformer;
  *
  * @since 0.1
  */
-public class SmuUby extends Uby {		
+public class SmuUby extends Uby {	
+	
+	
+	public static final String SMATCH_UBY_URL = "https://github.com/s-match/s-match-uby";
 			
+	private static final Logger log = LoggerFactory.getLogger(SmuUby.class);
 			
 	public SmuUby(DBConfig dbConfig) {
 		super(dbConfig);		
@@ -47,26 +53,28 @@ public class SmuUby extends Uby {
 	// todo what about provenance? todo instances?
 	public void augmentGraph(){
 		
-		Session session = sessionFactory.openSession();
+		/* 
+		 Session session = sessionFactory.openSession();
+		 
 		Transaction tx = session.beginTransaction();
 
 		Synset ss;
-		
-		
-		// vars: :lexiconId_A  :lexiconId_B
-		String hqlInsert = "INSERT INTO SynsetRelation (relType, relName, target, synsetId, depth, idx) "
-				+ "SELECT SR_A.id, "
+				
+		// vars: :lexiconId_A  :lexiconId_B :depth :relType, :relName 
+		String hqlInsert = "INSERT INTO SynsetRelation (synsetId, target, relType, relName, depth) "
+				+ "SELECT SR_A.id, SR_B.target, "
 				+ "FROM SynsetRelation SR_A, Synset SS_A, SynsetRelation SR_B, Synset SS_B"
 				+ "WHERE SR_A.synsetId=SS_A.synsetId"
 				+ "		 AND SS_A.lexiconId=:lexiconId_A"
 				+ "		 AND SR_B.synsetId=SS_B.synsetId"				
 				+ "		 AND SS_B.lexiconId=:lexiconId_B"
-				+ "		 AND SR_B.target=SR_A.synsetId";
+				+ "		 AND SR_B.target=SR_A.synsetId";				
 				
 		int createdEntities = session.createQuery( hqlInsert )
 		        .executeUpdate();
 		tx.commit();
 		session.close();
+		*/
 	}
 	
 	
@@ -84,6 +92,13 @@ public class SmuUby extends Uby {
 		} catch (Exception ex){
 			throw new RuntimeException("Error while loading lmf xml " + filepath, ex);
 		}		
+		
+		try {
+			augmentGraph();
+		} catch (Exception ex) {
+			log.error("Error while augmenting graph with computed edges!" ,ex);
+		}
+
 	}
 
 }

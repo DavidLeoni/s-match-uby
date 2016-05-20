@@ -81,13 +81,7 @@ public class SmuLinguisticOracle implements ILinguisticOracle, ISenseMatcher {
 		if (lmfXmlPath != null){
 			uby.loadLmfXml(lmfXmlPath, "UbyTestTodo"); // todo name meaning ?
 		}
-		
-		try {
-			uby.augmentGraph();
-		} catch (Exception ex) {
-			log.error("Error while augmenting graph with computed edges!" ,ex);
-		}
-		
+				
 	}
 	
 
@@ -123,13 +117,15 @@ public class SmuLinguisticOracle implements ILinguisticOracle, ISenseMatcher {
 		throw new UnsupportedOperationException("TODO - developer forgot to implement the method!");
 	}
 
-	// todo g   smatch sense ~= wordnet synset ~= lmf synset + sense + lexical entry (which has POS)
+	/**
+	 * NOTE: input word is supposed to be a lemma
+	 */
 	@Override
 	public List<ISense> getSenses(String word) throws LinguisticOracleException {
 		return null;
 	}
 
-	// todo g why a word can have many lemmas ?
+	
 	@Override
 	public List<String> getBaseForms(String derivation) throws LinguisticOracleException {
 		throw new UnsupportedOperationException("TODO - developer forgot to implement the method!");
@@ -154,7 +150,6 @@ public class SmuLinguisticOracle implements ILinguisticOracle, ISenseMatcher {
 	
 	}
 
-	// todo g what is a multiword? a sequence of lemmas?
 	@Override
 	public List<List<String>> getMultiwords(String beginning) throws LinguisticOracleException {
 		throw new UnsupportedOperationException("TODO - developer forgot to implement the method!");
