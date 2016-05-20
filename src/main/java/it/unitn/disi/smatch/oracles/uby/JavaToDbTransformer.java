@@ -75,6 +75,7 @@ class JavaToDbTransformer extends LMFDBTransformer {
 		checkNotNull(lexicalResource);
 		checkNotEmpty(lexicalResourceId, "Invalid lexicalResourceId!");
 
+		// copying to avoid double additions by LMFDBTransformer		
 		this.lexicalResource = SmuUtils.deepCopy(lexicalResource);
 		
 		this.lexicalResourceId = lexicalResourceId;
@@ -92,8 +93,9 @@ class JavaToDbTransformer extends LMFDBTransformer {
 		return lexicalResource;
 	}
 
-	@Override
+	@Override	
 	protected Lexicon createNextLexicon() {
+		// resetting lexicon array properties to avoid double additions by LMFDBTransformer
 		if (lexiconIter.hasNext()) {
 			Lexicon lexicon = lexiconIter.next();
 			
@@ -121,7 +123,7 @@ class JavaToDbTransformer extends LMFDBTransformer {
 	@Override
 	protected LexicalEntry getNextLexicalEntry() {
 		if (lexicalEntryIter.hasNext()) {
-			LexicalEntry lexicalEntry = SmuUtils.deepCopy(lexicalEntryIter.next());			
+			LexicalEntry lexicalEntry = lexicalEntryIter.next();			
 			synsetIter = lexicalEntry.getSynsets().iterator();			
 			return lexicalEntry;
 		} else {

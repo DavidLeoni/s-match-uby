@@ -1,8 +1,11 @@
 package it.unitn.disi.smatch.oracles.uby;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.hibernate.cfg.Configuration;
@@ -18,6 +21,8 @@ import javax.annotation.Nullable;
 
 import de.tudarmstadt.ukp.lmf.hibernate.HibernateConnect;
 import de.tudarmstadt.ukp.lmf.model.core.LexicalResource;
+import de.tudarmstadt.ukp.lmf.model.enums.ERelNameSemantics;
+import de.tudarmstadt.ukp.lmf.model.enums.ERelTypeSemantics;
 
 import static de.tudarmstadt.ukp.lmf.model.enums.ERelNameSemantics.*;
 import de.tudarmstadt.ukp.lmf.transform.DBConfig;
@@ -29,15 +34,33 @@ import de.tudarmstadt.ukp.lmf.transform.DBConfig;
  */
 public final class SmuUtils {
 
+	/**
+	 * Returns a list of relations used by Smatch, in {@link de.tudarmstadt.ukp.uby.lmf.model.ERelNameSemantics Uby format}
+	 * The list will contain only the canonical relations and not their inverse.
+	 */
+	public static final List<String> SMATCH_CANONICAL_RELATIONS = Collections.unmodifiableList(Arrays.asList(  ERelNameSemantics.HYPERNYM, 
+			ERelNameSemantics.HYPERNYMINSTANCE,
+		    ERelNameSemantics.HOLONYM,
+		    ERelNameSemantics.HOLONYMCOMPONENT,
+		    ERelNameSemantics.HOLONYMMEMBER,
+		    ERelNameSemantics.HOLONYMPART,
+		    ERelNameSemantics.HOLONYMPORTION,
+		    ERelNameSemantics.HOLONYMSUBSTANCE));
+
+	
 	private static Map<String, String> inverseRelations = new HashMap();
 
 	static {
 		putInverseRelations(ANTONYM, ANTONYM);
 		putInverseRelations(HYPERNYM, HYPONYM);
-		putInverseRelations(MERONYMMEMBER, HOLONYMMEMBER);
-		putInverseRelations(MERONYMSUBSTANCE, HOLONYMSUBSTANCE);
-		putInverseRelations(MERONYMPART, HOLONYMPART);
 		putInverseRelations(HYPERNYMINSTANCE, HYPONYMINSTANCE);
+		putInverseRelations(HOLONYM, MERONYM );
+		putInverseRelations(HOLONYMCOMPONENT, MERONYMCOMPONENT);
+		putInverseRelations(HOLONYMMEMBER, MERONYMMEMBER);
+		putInverseRelations(HOLONYMPART, MERONYMPART);
+		putInverseRelations(HOLONYMPORTION, MERONYMPORTION);
+		putInverseRelations(HOLONYMSUBSTANCE, MERONYMSUBSTANCE);		
+		
 	}
 
 	private static Map<DBConfig, Configuration> cachedHibernateConfigurations = new HashMap();
@@ -509,9 +532,11 @@ public final class SmuUtils {
 	 * 
 	 * @since 0.1
 	 */
-	public static <T> T deepCopy(T orig) {
+	static <T> T deepCopy(T orig) {
 		Cloner cloner = new Cloner();
 		return cloner.deepClone(orig);
 	}
 
 }
+
+

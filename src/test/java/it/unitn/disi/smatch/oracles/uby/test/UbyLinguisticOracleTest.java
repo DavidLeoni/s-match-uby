@@ -1,6 +1,7 @@
 package it.unitn.disi.smatch.oracles.uby.test;
 
 import static org.junit.Assert.assertEquals;
+import static it.unitn.disi.smatch.oracles.uby.test.LmfBuilder.lmf;
 import de.tudarmstadt.ukp.lmf.transform.LMFDBTransformer;
 import static org.junit.Assert.assertNotNull;
 import static it.unitn.disi.smatch.oracles.uby.SmuUtils.checkNotNull;
@@ -149,6 +150,8 @@ public class UbyLinguisticOracleTest {
 		//Synset syn = uby.getSynsetIterator(null).next();
 	}
 	
+	
+	
 	/**
 	 * Checks our extended model of uby with is actually returned by Hibernate
 	 * 
@@ -205,11 +208,58 @@ public class UbyLinguisticOracleTest {
 					"relation is not of type " + SmuSynsetRelation.class + " found instead " + rel.getClass());
 		}
 		
-		SmuSynsetRelation myRel = (SmuSynsetRelation) rel;
+		SmuSynsetRelation smuRel = (SmuSynsetRelation) rel;
 		
-		assertEquals (3, ((SmuSynsetRelation) rel).getDepth());
-		assertEquals ("a", ((SmuSynsetRelation) rel).getProvenance());	
+		assertEquals (3, smuRel.getDepth());
+		assertEquals ("a", smuRel.getProvenance());	
 	};
+	
+	
+	
+	@Test
+	public void testNormalize(){
+		
+		// lexicalResource 1 -> lexicon 1 -> synset 2  hyponymOf synset 1
+		//
+		// expect: 
+		//lexicalResource 1 -> lexicon 1 -> synset 1  hypernymOf synset 2
+		
+		
+		SmuUtils.createTables(dbConfig);
+
+		LexicalResource lexicalResource = lmf().lexicon().synset().synset()
+				.synsetRelation(ERelNameSemantics.HOLONYM,1).build();
+		
+		
+		SmuUtils.saveLexicalResourceToDb(dbConfig, lexicalResource, "lexical resource 1");
+		
+		
+		
+		SmuLinguisticOracle oracle = new SmuLinguisticOracle(dbConfig, null);
+		
+		SmuUby uby = oracle.getUby();	
+		
+		assertNotNull(uby.getLexicalResource("lexicalResource 1"));
+		assertEquals(1, uby.getLexicons().size());
+		
+		Lexicon rlexicon = uby.getLexicons().get(0);
+				
+		List<Synset> rsynsets = rlexicon.getSynsets();		
+		
+		assertEquals(2, rsynsets.size());
+		
+		List<SynsetRelation> synRels = rsynsets.get(0).getSynsetRelations();		
+		assertEquals(2, synRels.size());		
+		
+		SmuSynsetRelation smuRel1 = (SmuSynsetRelation) synRels.get(0);		
+		assertEquals (ERelNameSemantics.HOLONYM, smuRel1.getRelName());
+
+		SmuSynsetRelation smuRel2 = (SmuSynsetRelation) synRels.get(0);		
+		assertEquals (ERelNameSemantics.HYPERNYM, smuRel2.getRelName());
+
+		
+
+	}
 
 }
 
