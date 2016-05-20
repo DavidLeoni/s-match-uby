@@ -89,6 +89,13 @@
 		</dependency>
 
 
+		<!--  todo shade it  -->
+		<dependency>
+		    <groupId>uk.com.robust-it</groupId>
+		    <artifactId>cloning</artifactId>
+		    <version>1.9.2</version>
+		</dependency>
+
 		<dependency>
 			<scope>test</scope>
 			<groupId>junit</groupId>

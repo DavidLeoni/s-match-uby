@@ -1,21 +1,19 @@
 package it.unitn.disi.smatch.oracles.uby;
 
-
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+
 import org.hibernate.cfg.Configuration;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+
+import com.rits.cloning.Cloner;
+
 import javax.annotation.Nullable;
 
 import de.tudarmstadt.ukp.lmf.hibernate.HibernateConnect;
@@ -23,7 +21,6 @@ import de.tudarmstadt.ukp.lmf.model.core.LexicalResource;
 
 import static de.tudarmstadt.ukp.lmf.model.enums.ERelNameSemantics.*;
 import de.tudarmstadt.ukp.lmf.transform.DBConfig;
-
 
 /**
  * Utility class for S-match Uby
@@ -122,15 +119,15 @@ public final class SmuUtils {
 	private static final Logger log = LoggerFactory.getLogger(SmuUtils.class);
 
 	/**
-	 * Create all LMF Tables in the database based on the hibernate mapping
+	 * Create all LMF Tables in the database based on the hibernate mapping.
+	 * Eventual existing tables are dropped.
 	 * 
 	 * (adapted from LMFDBUtils.createTables(dbConfig) )
 	 * 
-	 * @param dbConfig
-	 * @throws FileNotFoundException
+	 * @param dbConfig 
 	 * @since 0.1
 	 */
-	public static void createTables(DBConfig dbConfig) throws FileNotFoundException {
+	public static void createTables(DBConfig dbConfig) {
 
 		log.info("CREATE S-MATCH UBY TABLES");
 
@@ -139,6 +136,14 @@ public final class SmuUtils {
 		hcfg.setProperty("hibernate.hbm2ddl.auto", "none");
 		SchemaExport se = new SchemaExport(hcfg);
 		se.create(true, true);
+
+	}
+
+	/**
+	 * Returns true a uby database already exists.
+	 */
+	public static boolean checkExists(DBConfig dbConfig) {
+		throw new UnsupportedOperationException("TODO - developer forgot to implement the method!"); 
 	}
 
 	/**
@@ -169,8 +174,9 @@ public final class SmuUtils {
 
 	/**
 	 * 
-	 * @param dbConfig
-	 *            * @since 0.1
+	 * NOTE: returned configuration is set to create db if it doesn't already exist.
+	 * 
+	 * @since 0.1
 	 */
 	public static Configuration getHibernateConfig(DBConfig dbConfig) {
 
@@ -184,7 +190,9 @@ public final class SmuUtils {
 		Configuration hcfg = new Configuration()
 				.addProperties(HibernateConnect.getProperties(dbConfig.getJdbc_url(), dbConfig.getJdbc_driver_class(),
 						dbConfig.getDb_vendor(), dbConfig.getUser(), dbConfig.getPassword(), dbConfig.isShowSQL()));
-
+		
+		hcfg.setProperty("hibernate.hbm2ddl.auto","update");
+		
 		// load hibernate mappings
 		ClassLoader cl = HibernateConnect.class.getClassLoader();
 		PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver(cl);
@@ -215,18 +223,18 @@ public final class SmuUtils {
 
 		try {
 
-			Resource[] resources = new PathMatchingResourcePatternResolver(
-					SmuUtils.class.getClassLoader()).getResources("hybernatemap/access/**/*.hbm.xml");
-			
-			SmuUtils.checkArgument(resources.length == 1, 
+			Resource[] resources = new PathMatchingResourcePatternResolver(SmuUtils.class.getClassLoader())
+					.getResources("hybernatemap/access/**/*.hbm.xml");
+
+			SmuUtils.checkArgument(resources.length == 1,
 					"Resource should be equals to 1, found instead " + resources.length);
 
 			for (Resource r : resources) {
 				loadHibernateXml(hcfg, r);
 			}
 
-		} catch (Exception e) {
-			throw new RuntimeException("Hibernate mappings not found!", e);
+		} catch (Exception ex) {
+			throw new RuntimeException("Error while loading hibernate mappings!", ex);
 		}
 
 		log.info("Done loading custom mappings. ");
@@ -473,8 +481,8 @@ public final class SmuUtils {
 	 * 
 	 * Saves a LexicalResource complete with all the lexicons, synsets, etc into
 	 * a database. This method is suitable only for small lexical resources and
-	 * generally for testing purposes. If you have a big resource, stream the loading by 
-	 * providing your implementation of <a href=
+	 * generally for testing purposes. If you have a big resource, stream the
+	 * loading by providing your implementation of <a href=
 	 * "https://github.com/dkpro/dkpro-uby/blob/master/de.tudarmstadt.ukp.uby.persistence.transform-asl/src/main/java/de/tudarmstadt/ukp/lmf/transform/LMFDBTransformer.java"
 	 * target="_blank"> LMFDBTransformer</a> and call {@code transform()} on it
 	 * instead.
@@ -485,19 +493,25 @@ public final class SmuUtils {
 	 * @throws SmuException
 	 * @since 0.1
 	 */
-	public static void saveLexicalResourceToDb(
-			DBConfig dbConfig, 
-			LexicalResource lexicalResource,
+	public static void saveLexicalResourceToDb(DBConfig dbConfig, LexicalResource lexicalResource,
 			String lexicalResourceId) {
 		log.info("Going to save lexical resource to database...");
 		try {
 			new JavaToDbTransformer(dbConfig, lexicalResource, lexicalResourceId).transform();
 		} catch (Exception ex) {
-			throw new SmuException("Error when importing lexical resource " + lexicalResourceId + " !",
-					ex);
+			throw new SmuException("Error when importing lexical resource " + lexicalResourceId + " !", ex);
 		}
 		log.info("Done saving.");
 	}
-	
- 
+
+	/**
+	 * Returns a deep copy of any object, including non-serializable ones.
+	 * 
+	 * @since 0.1
+	 */
+	public static <T> T deepCopy(T orig) {
+		Cloner cloner = new Cloner();
+		return cloner.deepClone(orig);
+	}
+
 }

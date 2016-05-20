@@ -67,14 +67,7 @@ public class SmuLinguisticOracle implements ILinguisticOracle, ISenseMatcher {
 
 	public SmuLinguisticOracle(DBConfig dbConfig, String lmfXmlPath) {
 		
-		Objects.requireNonNull(dbConfig);
-
-		try {
-			SmuUtils.createTables(dbConfig);
-		} catch (FileNotFoundException e) {
-			throw new RuntimeException("Couldn't create tables in database "+ dbConfig.getJdbc_url() + "!", e); // todo what about
-												// DisiRuntimeException?
-		}			
+		Objects.requireNonNull(dbConfig);	
 
 		uby = new SmuUby(dbConfig);
 		

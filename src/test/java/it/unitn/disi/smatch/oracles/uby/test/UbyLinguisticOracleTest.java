@@ -16,6 +16,7 @@ import javax.annotation.Nullable;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +25,8 @@ import de.tudarmstadt.ukp.lmf.hibernate.UBYH2Dialect;
 import de.tudarmstadt.ukp.lmf.model.core.LexicalEntry;
 import de.tudarmstadt.ukp.lmf.model.core.LexicalResource;
 import de.tudarmstadt.ukp.lmf.model.core.Lexicon;
+import de.tudarmstadt.ukp.lmf.model.enums.ERelNameSemantics;
+import de.tudarmstadt.ukp.lmf.model.enums.ERelTypeSemantics;
 import de.tudarmstadt.ukp.lmf.model.miscellaneous.ConstraintSet;
 import de.tudarmstadt.ukp.lmf.model.multilingual.SenseAxis;
 import de.tudarmstadt.ukp.lmf.model.semantics.SemanticPredicate;
@@ -46,8 +49,6 @@ import it.unitn.disi.smatch.oracles.uby.SmuLinguisticOracle;
 import it.unitn.disi.smatch.oracles.uby.SmuSynsetRelation;
 import it.unitn.disi.smatch.oracles.uby.SmuUby;
 import it.unitn.disi.smatch.oracles.uby.SmuUtils;
-import it.unitn.disi.smatch.oracles.uby.test.experimental.MySynsetRelation;
-import it.unitn.disi.smatch.oracles.uby.test.experimental.TestExtendingHibernate;
 
 
 public class UbyLinguisticOracleTest {
@@ -116,11 +117,37 @@ public class UbyLinguisticOracleTest {
     }
 	
 	
-	
-			
-	
-	
+				
 
+	/**
+	 * Tests simple saving with Hibernate
+	 * 
+	 * @since 0.1
+	 */
+	@Test
+	public void testHibernateSave(){
+/*		try {
+			SmuUtils.createTables(dbConfig);
+		} catch (FileNotFoundException e) {
+			throw new RuntimeException("Couldn't create tables in database " + dbConfig.getJdbc_url() + "!", e); // todo
+		}
+		
+		SmuLinguisticOracle oracle = new SmuLinguisticOracle(dbConfig, null);
+		
+		SmuUby uby = oracle.getUby();
+		
+		uby.getSession().save(arg0)
+*/
+	}
+	
+	/**
+	 * todo this seems a uby bug, it always return null !
+	 */
+	@Test
+	@Ignore
+	public void todo(){
+		//Synset syn = uby.getSynsetIterator(null).next();
+	}
 	
 	/**
 	 * Checks our extended model of uby with is actually returned by Hibernate
@@ -130,13 +157,10 @@ public class UbyLinguisticOracleTest {
 	@Test
 	public void testHibernateExtraAttributes(){
 
-		try {
-			SmuUtils.createTables(dbConfig);
-		} catch (FileNotFoundException e) {
-			throw new RuntimeException("Couldn't create tables in database " + dbConfig.getJdbc_url() + "!", e); // todo
-		}
+		SmuUtils.createTables(dbConfig);		
 		
 		LexicalResource lexicalResource = new LexicalResource();
+		lexicalResource.setName("lexicalResource 1");
 		Lexicon lexicon = new Lexicon();
 		lexicalResource.addLexicon(lexicon);
 		lexicon.setId("lexicon 1");
@@ -147,8 +171,12 @@ public class UbyLinguisticOracleTest {
 		lexicon.getSynsets().add(synset);
 		synset.setId("synset 1");
 		SmuSynsetRelation synsetRelation = new SmuSynsetRelation();
+		synsetRelation.setRelType(ERelTypeSemantics.taxonomic);
+		synsetRelation.setRelName(ERelNameSemantics.HYPERNYM);
 		synsetRelation.setDepth(3);
 		synsetRelation.setProvenance("a");
+	    synsetRelation.setSource(synset);
+		synsetRelation.setTarget(synset);
 		synset.getSynsetRelations().add(synsetRelation);			
 
 		SmuUtils.saveLexicalResourceToDb(dbConfig, lexicalResource, "lexical resource 1");
@@ -157,8 +185,16 @@ public class UbyLinguisticOracleTest {
 		
 		SmuUby uby = oracle.getUby();	
 		
-		Synset syn = uby.getSynsetIterator(null).next();		
-		List<SynsetRelation> synRels = syn.getSynsetRelations();		
+		assertNotNull(uby.getLexicalResource("lexicalResource 1"));
+		assertEquals(1, uby.getLexicons().size());
+		
+		Lexicon rlexicon = uby.getLexicons().get(0);
+				
+		List<Synset> rsynsets = rlexicon.getSynsets();		
+		
+		assertEquals(1, rsynsets.size());
+		
+		List<SynsetRelation> synRels = rsynsets.get(0).getSynsetRelations();		
 		assertEquals(1, synRels.size());		
 		SynsetRelation rel = synRels.get(0);
 		assertNotNull(rel);
@@ -166,14 +202,13 @@ public class UbyLinguisticOracleTest {
 		log.info("Asserting rel is instance of " + SmuSynsetRelation.class);
 		if (!(rel instanceof SmuSynsetRelation)) {
 			throw new RuntimeException(
-					"relation is not of type " + MySynsetRelation.class + " found instead " + rel.getClass());
+					"relation is not of type " + SmuSynsetRelation.class + " found instead " + rel.getClass());
 		}
 		
 		SmuSynsetRelation myRel = (SmuSynsetRelation) rel;
 		
 		assertEquals (3, ((SmuSynsetRelation) rel).getDepth());
-		assertEquals ("a", ((SmuSynsetRelation) rel).getProvenance());
-	
+		assertEquals ("a", ((SmuSynsetRelation) rel).getProvenance());	
 	};
 
 }

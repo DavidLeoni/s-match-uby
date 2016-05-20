@@ -43,7 +43,7 @@ public class SmuUby extends Uby {
 		ServiceRegistryBuilder serviceRegistryBuilder = new ServiceRegistryBuilder()
 				.applySettings(cfg.getProperties());
 		sessionFactory = cfg.buildSessionFactory(serviceRegistryBuilder.buildServiceRegistry());
-		openSession();
+		session = sessionFactory.openSession();		
 	}
 	
 	/**

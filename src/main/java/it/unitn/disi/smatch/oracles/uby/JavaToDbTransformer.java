@@ -4,13 +4,19 @@ import static it.unitn.disi.smatch.oracles.uby.SmuUtils.checkNotEmpty;
 import static it.unitn.disi.smatch.oracles.uby.SmuUtils.checkNotNull;
 
 import java.io.FileNotFoundException;
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Iterator;
 
 import javax.annotation.Nullable;
 
+import org.hibernate.cfg.Configuration;
+import org.hibernate.internal.util.SerializationHelper;
+import org.hibernate.service.ServiceRegistryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import de.tudarmstadt.ukp.lmf.hibernate.HibernateConnect;
 import de.tudarmstadt.ukp.lmf.model.core.LexicalEntry;
 import de.tudarmstadt.ukp.lmf.model.core.LexicalResource;
 import de.tudarmstadt.ukp.lmf.model.core.Lexicon;
@@ -60,14 +66,24 @@ class JavaToDbTransformer extends LMFDBTransformer {
 	 */
 	public JavaToDbTransformer(DBConfig dbConfig, LexicalResource lexicalResource, String lexicalResourceId) throws FileNotFoundException {
 		super(dbConfig);
+		
+		Configuration cfg = SmuUtils.getHibernateConfig(dbConfig);
+		sessionFactory = cfg.buildSessionFactory(
+				new ServiceRegistryBuilder().applySettings(
+				cfg.getProperties()).buildServiceRegistry());		
+		
 		checkNotNull(lexicalResource);
 		checkNotEmpty(lexicalResourceId, "Invalid lexicalResourceId!");
 
-		this.lexicalResource = lexicalResource;
+		this.lexicalResource = SmuUtils.deepCopy(lexicalResource);
+		
 		this.lexicalResourceId = lexicalResourceId;
 
 		this.lexiconIter = this.lexicalResource.getLexicons().iterator();
+		this.lexicalResource.setLexicons(new ArrayList());
+		
 		this.senseAxisIter = lexicalResource.getSenseAxes().iterator();
+		this.lexicalResource.setSenseAxes(new ArrayList());
 
 	}
 
@@ -80,14 +96,21 @@ class JavaToDbTransformer extends LMFDBTransformer {
 	protected Lexicon createNextLexicon() {
 		if (lexiconIter.hasNext()) {
 			Lexicon lexicon = lexiconIter.next();
+			
 			log.info("Creating Lexicon " + lexicon.getId());
+			
 			subcategorizationFrameIter = lexicon.getSubcategorizationFrames().iterator();
+			lexicon.setSubcategorizationFrames(new ArrayList());
 			subcategorizationFrameSetIter = lexicon.getSubcategorizationFrameSets().iterator();
+			lexicon.setSubcategorizationFrameSets(new ArrayList());
 			lexicalEntryIter = lexicon.getLexicalEntries().iterator();
+			lexicon.setLexicalEntries(new ArrayList());
 			semanticPredicateIter = lexicon.getSemanticPredicates().iterator();
+			lexicon.setSemanticPredicates(new ArrayList());
 			synSemCorrespondenceIter = lexicon.getSynSemCorrespondences().iterator();
+			lexicon.setSynSemCorrespondences(new ArrayList());
 			constraintSetIter = lexicon.getConstraintSets().iterator();
-
+			lexicon.setConstraintSets(new ArrayList());
 			return lexicon;
 		} else {
 			return null;
@@ -98,8 +121,8 @@ class JavaToDbTransformer extends LMFDBTransformer {
 	@Override
 	protected LexicalEntry getNextLexicalEntry() {
 		if (lexicalEntryIter.hasNext()) {
-			LexicalEntry lexicalEntry = lexicalEntryIter.next();
-			synsetIter = lexicalEntry.getSynsets().iterator();
+			LexicalEntry lexicalEntry = SmuUtils.deepCopy(lexicalEntryIter.next());			
+			synsetIter = lexicalEntry.getSynsets().iterator();			
 			return lexicalEntry;
 		} else {
 			return null;
@@ -107,12 +130,12 @@ class JavaToDbTransformer extends LMFDBTransformer {
 	}
 
 	/**
-	 * Rreturn the next element of the iterator or {@code null} if there is none
+	 * Return the next element of the iterator or {@code null} if there is none
 	 */
 	@Nullable
 	private static <T> T next(Iterator<T> iter) {
 		if (iter.hasNext()) {
-			return  iter.next();
+			return iter.next();
 		} else {
 			return null;
 		}
