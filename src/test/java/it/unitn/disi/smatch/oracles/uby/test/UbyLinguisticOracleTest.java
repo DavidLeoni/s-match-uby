@@ -186,7 +186,7 @@ public class UbyLinguisticOracleTest {
 
 		SmuLinguisticOracle oracle = new SmuLinguisticOracle(dbConfig, null);
 		
-		SmuUby uby = oracle.getUby();	
+		SmuUby uby = oracle.getUby();
 		
 		assertNotNull(uby.getLexicalResource("lexicalResource 1"));
 		assertEquals(1, uby.getLexicons().size());
@@ -198,7 +198,7 @@ public class UbyLinguisticOracleTest {
 		assertEquals(1, rsynsets.size());
 		
 		List<SynsetRelation> synRels = rsynsets.get(0).getSynsetRelations();		
-		assertEquals(1, synRels.size());		
+		assertEquals(1, synRels.size());
 		SynsetRelation rel = synRels.get(0);
 		assertNotNull(rel);
 
@@ -228,16 +228,16 @@ public class UbyLinguisticOracleTest {
 		SmuUtils.createTables(dbConfig);
 
 		LexicalResource lexicalResource = lmf().lexicon().synset().synset()
-				.synsetRelation(ERelNameSemantics.HOLONYM,1).build();
+				.synsetRelation(ERelNameSemantics.HYPONYM,1).build();
 		
 		
-		SmuUtils.saveLexicalResourceToDb(dbConfig, lexicalResource, "lexical resource 1");
-		
-		
+		SmuUtils.saveLexicalResourceToDb(dbConfig, lexicalResource, "lexical resource 1");			
 		
 		SmuLinguisticOracle oracle = new SmuLinguisticOracle(dbConfig, null);
 		
 		SmuUby uby = oracle.getUby();	
+		
+		uby.augmentGraph();
 		
 		assertNotNull(uby.getLexicalResource("lexicalResource 1"));
 		assertEquals(1, uby.getLexicons().size());
@@ -247,17 +247,29 @@ public class UbyLinguisticOracleTest {
 		List<Synset> rsynsets = rlexicon.getSynsets();		
 		
 		assertEquals(2, rsynsets.size());
+				
 		
-		List<SynsetRelation> synRels = rsynsets.get(0).getSynsetRelations();		
-		assertEquals(2, synRels.size());		
+		Synset synset_2 = uby.getSynsetById("synset 2");
 		
-		SmuSynsetRelation smuRel1 = (SmuSynsetRelation) synRels.get(0);		
-		assertEquals (ERelNameSemantics.HOLONYM, smuRel1.getRelName());
-
-		SmuSynsetRelation smuRel2 = (SmuSynsetRelation) synRels.get(0);		
-		assertEquals (ERelNameSemantics.HYPERNYM, smuRel2.getRelName());
-
-		
+        
+        List<SynsetRelation> synRels_2 = synset_2.getSynsetRelations();     
+        assertEquals(1, synRels_2.size());      
+        
+        SynsetRelation smuRel_2 = synRels_2.get(0);
+        assertEquals("synset 2", smuRel_2.getSource().getId());
+        assertEquals("synset 1", smuRel_2.getTarget().getId());
+        assertEquals (ERelNameSemantics.HYPONYM, smuRel_2.getRelName());    
+        
+        
+        Synset synset_1 = uby.getSynsetById("synset 1");        
+        List<SynsetRelation> synRels_1 = synset_1.getSynsetRelations();       
+        assertEquals(1, synRels_1.size());
+        SmuSynsetRelation smuRel_1 = (SmuSynsetRelation) synRels_1.get(0);
+        assertEquals("synset 1", smuRel_1.getSource().getId());
+        assertEquals("synset 2", smuRel_1.getTarget().getId());
+        assertEquals (ERelNameSemantics.HYPERNYM, smuRel_1.getRelName());
+        
+        assertEquals(1, smuRel_1.getDepth());
 
 	}
 

@@ -136,7 +136,7 @@ class JavaToDbTransformer extends LMFDBTransformer {
 	 */
 	@Nullable
 	private static <T> T next(Iterator<T> iter) {
-		if (iter.hasNext()) {
+		if (iter != null && iter.hasNext()) {
 			return iter.next();
 		} else {
 			return null;

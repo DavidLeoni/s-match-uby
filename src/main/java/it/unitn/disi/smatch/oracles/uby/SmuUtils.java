@@ -99,7 +99,7 @@ public final class SmuUtils {
 	}
 
 	/**
-	 * Returns true if provided relation has inverse.
+	 * Returns true if provided relation has a known inverse, otherwise returns false. 
 	 */
 	public static boolean hasInverse(String relation) {
 		checkNotEmpty(relation, "Invalid relation!");
@@ -178,6 +178,7 @@ public final class SmuUtils {
 
 		log.info("Loading config " + xml.getDescription() + " ...");
 
+		
 		try {
 
 			java.util.Scanner sc = new java.util.Scanner(xml.getInputStream()).useDelimiter("\\A");
@@ -216,7 +217,8 @@ public final class SmuUtils {
 		
 		hcfg.setProperty("hibernate.hbm2ddl.auto","update");
 		
-		// load hibernate mappings
+		log.info("Going to load default UBY hibernate mappings...");
+		
 		ClassLoader cl = HibernateConnect.class.getClassLoader();
 		PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver(cl);
 		Resource[] mappings = null;
@@ -235,13 +237,16 @@ public final class SmuUtils {
 					log.info("Skipping class customized by Smatch Uby: " + mapping.getDescription());
 				} else {
 					loadHibernateXml(hcfg, mapping);
+					
 				}
 			}
 
 		} catch (IOException e) {
 			throw new RuntimeException("Error while loading hibernate mappings!", e);
 		}
-
+		log.info("Done loading default UBY hibernate mappings...");
+		
+		
 		log.info("Loading custom S-Match Uby hibernate mappings... ");
 
 		try {
@@ -253,7 +258,8 @@ public final class SmuUtils {
 					"Resource should be equals to 1, found instead " + resources.length);
 
 			for (Resource r : resources) {
-				loadHibernateXml(hcfg, r);
+				//loadHibernateXml(hcfg, r);
+				hcfg.addURL(r.getURL());
 			}
 
 		} catch (Exception ex) {
@@ -536,6 +542,14 @@ public final class SmuUtils {
 		Cloner cloner = new Cloner();
 		return cloner.deepClone(orig);
 	}
+
+	/**
+	 * Returns true if provided relation is canonical
+	 */
+    public static boolean isCanonical(String relName) {
+        checkNotEmpty(relName, "Invalid relation name!");
+        return SMATCH_CANONICAL_RELATIONS.contains(relName);
+    }
 
 }
 
