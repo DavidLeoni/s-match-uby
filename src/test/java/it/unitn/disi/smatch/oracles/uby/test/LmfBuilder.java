@@ -77,6 +77,26 @@ public class LmfBuilder {
 		return this;
 
 	}
+	
+    /**
+     * 
+     * @param targetIdNum
+     *            must be > 0.
+     */
+    public LmfBuilder synsetRelation(String relName, int sourceIdNum, int targetIdNum) {
+        checkBuilt();
+        checkNotEmpty(relName, "Invalid relation name!");
+        SmuUtils.checkArgument(targetIdNum > 0, "Expected idNum greater than zero, found " + targetIdNum + " instead!");
+        SynsetRelation sr = new SynsetRelation();
+        sr.setTarget(getSynset(targetIdNum));
+        Synset source = getSynset(sourceIdNum);
+        sr.setSource(getSynset(sourceIdNum));
+        sr.setRelName(relName);
+        source.getSynsetRelations().add(sr);
+        return this;
+
+    }
+	
 
 	private Synset getCurSynset() {
 		checkBuilt();

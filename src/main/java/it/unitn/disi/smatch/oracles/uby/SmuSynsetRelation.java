@@ -38,6 +38,17 @@ public class SmuSynsetRelation extends SynsetRelation {
 
 	@VarType(type = EVarType.ATTRIBUTE)
 	protected String provenance;
+	
+	/**
+	 * Copies all the fields of {@code sr into this object}
+	 */
+	public SmuSynsetRelation(SynsetRelation sr) {
+	    this.setFrequencies(sr.getFrequencies());
+	    this.setRelName(sr.getRelName());
+	    this.setRelType(sr.getRelType());
+	    this.setSource(sr.getSource());
+	    this.setTarget(sr.getTarget());	    
+	}
 
 	public SmuSynsetRelation() {
 		super();
@@ -77,5 +88,16 @@ public class SmuSynsetRelation extends SynsetRelation {
 	public void setDepth(int depth) {
 		this.depth = depth;
 	}
+
+    @Override
+    public String toString() {
+        String sourceId = source == null ? "null" : source.getId();
+        String targetId = target == null ? "null" : target.getId();
+        
+        return "SmuSynsetRelation [depth=" + depth + ", provenance=" + provenance + ", source=" + sourceId + ", target="
+                + targetId + ", relType=" + relType + ", relName=" + relName + ", frequencies=" + frequencies + "]";
+    }
+	
+	
 
 }

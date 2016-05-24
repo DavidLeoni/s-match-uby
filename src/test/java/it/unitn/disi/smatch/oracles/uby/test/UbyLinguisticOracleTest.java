@@ -237,6 +237,13 @@ public class UbyLinguisticOracleTest {
                                                .synsetRelation(ERelNameSemantics.HYPONYM, 1)
                                                .build();
 
+        LexicalResource expectedLexicalResource = lmf().lexicon()
+                .synset()
+                .synset()
+                .synsetRelation(ERelNameSemantics.HYPONYM, 1)
+                .synsetRelation(ERelNameSemantics.HYPERNYM, 1,2)
+                .build();
+
         SmuUtils.saveLexicalResourceToDb(dbConfig, lexicalResource, "lexical resource 1");
 
         SmuLinguisticOracle oracle = new SmuLinguisticOracle(dbConfig, null);
@@ -244,41 +251,9 @@ public class UbyLinguisticOracleTest {
         SmuUby uby = oracle.getUby();
 
         uby.augmentGraph();
-
-        assertNotNull(uby.getLexicalResource("lexicalResource 1"));
-        assertEquals(1, uby.getLexicons()
-                           .size());
-
-        Lexicon rlexicon = uby.getLexicons()
-                              .get(0);
-
-        List<Synset> rsynsets = rlexicon.getSynsets();
-
-        assertEquals(2, rsynsets.size());
-
-        // synset 1
-        Synset synset_1 = uby.getSynsetById("synset 1");
-        List<SynsetRelation> synRels_1 = synset_1.getSynsetRelations();
-        assertEquals(1, synRels_1.size());
-        SmuSynsetRelation smuRel_1 = (SmuSynsetRelation) synRels_1.get(0);
-        assertEquals("synset 1", smuRel_1.getSource()
-                                         .getId());
-        assertEquals("synset 2", smuRel_1.getTarget()
-                                         .getId());
-        assertEquals(ERelNameSemantics.HYPERNYM, smuRel_1.getRelName());
-        assertEquals(1, smuRel_1.getDepth());
-
-        // synset 2        
-        Synset synset_2 = uby.getSynsetById("synset 2");
-        List<SynsetRelation> synRels_2 = synset_2.getSynsetRelations();
-        assertEquals(1, synRels_2.size());
-        SynsetRelation smuRel_2 = synRels_2.get(0);
-        assertEquals("synset 2", smuRel_2.getSource()
-                                         .getId());
-        assertEquals("synset 1", smuRel_2.getTarget()
-                                         .getId());
-        assertEquals(ERelNameSemantics.HYPONYM, smuRel_2.getRelName());
-
+           
+        SmuTester.checkEquals(expectedLexicalResource, uby);
+        
     }
 
     /**
@@ -301,6 +276,8 @@ public class UbyLinguisticOracleTest {
                                                .synset()
                                                .synsetRelation(ERelNameSemantics.HYPERNYM, 1)
                                                .build();
+        
+        LexicalResource expectedLexicalResource = lexicalResource;        
 
         SmuUtils.saveLexicalResourceToDb(dbConfig, lexicalResource, "lexical resource 1");
 
@@ -310,34 +287,9 @@ public class UbyLinguisticOracleTest {
 
         uby.augmentGraph();
 
-        assertNotNull(uby.getLexicalResource("lexicalResource 1"));
-        assertEquals(1, uby.getLexicons()
-                           .size());
 
-        Lexicon rlexicon = uby.getLexicons()
-                              .get(0);
-
-        List<Synset> rsynsets = rlexicon.getSynsets();
-
-        assertEquals(2, rsynsets.size());
-
-
-        // synset 1
-        Synset synset_1 = uby.getSynsetById("synset 1");
-        List<SynsetRelation> synRels_1 = synset_1.getSynsetRelations();
-        assertEquals(0, synRels_1.size());
-
-        // synset 2        
-        Synset synset_2 = uby.getSynsetById("synset 2");
-        List<SynsetRelation> synRels_2 = synset_2.getSynsetRelations();
-        assertEquals(1, synRels_2.size());
-        SynsetRelation smuRel_2 = synRels_2.get(0);
-        assertEquals("synset 2", smuRel_2.getSource()
-                                         .getId());
-        assertEquals("synset 1", smuRel_2.getTarget()
-                                         .getId());
-        assertEquals(ERelNameSemantics.HYPERNYM, smuRel_2.getRelName());
-
+        SmuTester.checkEquals(expectedLexicalResource, uby);
+        
     }
 
 }

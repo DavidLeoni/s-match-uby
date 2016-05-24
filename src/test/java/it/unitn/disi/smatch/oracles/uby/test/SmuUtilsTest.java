@@ -51,6 +51,6 @@ public class SmuUtilsTest {
 		} catch (SmuNotFoundException ex){
 			
 		}
-	}
+	}	
 	
 }
