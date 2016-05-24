@@ -7,18 +7,18 @@
 	   node="SynsetRelation" 
 	   dynamic-insert="true"
 	   discriminator-value="SynsetRelation">
+   
     <id column="synsetRelationId" type="long">
-           <!--   <generator class="increment"/> -->
-           <!-- SmuUby: using "sequence" so we avoid 
-           				org.hibernate.QueryException: Invalid identifier generator encountered for implicit id handling as part of bulk insertions [INSERT INTO SynsetRelation (source, target, relType, relName, depth, provenance)   SELECT SR.target, SR.source,  SR.relType, ':relName',  1, 'it.unitn.disi.smatch.oracles.uby'  FROM de.tudarmstadt.ukp.lmf.model.semantics.SynsetRelation SR] 
-           	-->
-           <!--  <generator class="sequence"/>   -->
-           <generator class="native"/> 
+		   <!-- smuby: using "sequence" instead of "increment" to avoid 
+           				org.hibernate.QueryException: Invalid identifier generator encountered for implicit id handling as part of bulk insertions [INSERT INTO SynsetRelation (source, target, relType, relName, depth, provenance)   SELECT SR.target, SR.source,  SR.relType, ':relName',  1, 'it.unitn.disi.smatch.oracles.uby'  FROM de.tudarmstadt.ukp.lmf.model.semantics.SynsetRelation SR]
+                <generator class="increment"/> -->                       
+           <generator class="sequence"/> 
+            
     </id>
     
-    <!-- s-match uby start -->
+    <!-- smuby start -->
      <discriminator column="DTYPE" type="string"/>           
-    <!-- s-match uby end -->
+    <!-- smuby end -->
     
    <property name="relType" column="relType" node="@relType">    
     	<type name="de.tudarmstadt.ukp.lmf.hibernate.EnumUserType">
@@ -27,9 +27,7 @@
   	</property>     
   	
   	<property name="relName" column="relName" node="@relName" type="string"/>	       	  		
-            
-       	
-  		
+                   	  	
 	<many-to-one name="target" class="de.tudarmstadt.ukp.lmf.model.semantics.Synset" column="target"
 		 node="@target" foreign-key="none" index="synsetrelation_target_IDX"/>
 
@@ -43,8 +41,7 @@
 	<many-to-one name="source" class="de.tudarmstadt.ukp.lmf.model.semantics.Synset" column="synsetId"
 			insert="false" update="false"/>
 	
-				
-	
+	<!-- Smuby: added to have our customized SmySynsetRelation  mapped to same SynsetRelation table -->				
 	<subclass name="it.unitn.disi.smatch.oracles.uby.SmuSynsetRelation" 
        		  extends="de.tudarmstadt.ukp.lmf.model.semantics.SynsetRelation" 
        		  discriminator-value="SmuSynsetRelation">

@@ -9,13 +9,13 @@ import static it.unitn.disi.smatch.oracles.uby.SmuUtils.checkNotEmpty;
 
 /**
  * 
- * Builder helper for {@link LexicalResource} data structures made for testing
- * purposes.
+ * Builder helper for {@link LexicalResource} data structures. To use for testing purposes. 
  * 
  * The builder will automatically crete necessary ids for you like 'lexical
  * resource 1', 'synset 3', ... according to the order of insertion.
  * 
- * Start building with lmf()
+ * Start building with {@link #lmf()} and finish with {@link #build()i}. Each builder instance 
+ * can build only one object. 
  * 
  * @since 0.1
  *

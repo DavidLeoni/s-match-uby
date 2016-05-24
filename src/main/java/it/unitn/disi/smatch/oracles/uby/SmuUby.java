@@ -86,7 +86,7 @@ public class SmuUby extends Uby {
         // Bs: the edges computed so far
 
         String hqlInsert = "INSERT INTO SynsetRelation (synsetId, target, relType, relName, depth, provenance) "
-                + "  SELECT SR_A.id, SR_B.target,  SR_A.relType, :relName, :depth + 1, " + getProvenance()
+                + "  SELECT SR_A.id, SR_B.target,  SR_A.relType, :relName, :depth + 1, " + getProvenanceId()
                 + "  FROM SynsetRelation SR_A, Synset SS_A, SynsetRelation SR_B, Synset SS_B" + "  WHERE"
                 + "		 	 SS_A.relName=:relName" + "		 AND SS_A.depth=:depth" + "		 AND SS_B.provenance=''"
                 + "		 AND SS_B.relName=:relName" + "		 AND SR_A.target=SR_B.synsetId";
@@ -119,6 +119,10 @@ public class SmuUby extends Uby {
 
     }
 
+    /**
+     * Returns {@code true} if {@code source} contains a relation toward {@code target} synset. 
+     * Returns false otherwise.
+     */
     private static boolean containsRel(Synset source, Synset target,  String relName){        
         checkNotNull(source, "Invalid source!");
         checkNotNull(target, "Invalid target!");
@@ -133,6 +137,7 @@ public class SmuUby extends Uby {
         return false;
     }
     
+    
     private static void incStat(Map<String, Integer> map, String key){
         checkNotEmpty(key, "Invalid key!");
         if (map.containsKey(key)){
@@ -143,7 +148,7 @@ public class SmuUby extends Uby {
     }
     
    /*
-    * Adds missing edges for relations we consider as canonical
+    * Adds missing edges of depth 1 for relations we consider as canonical.
     */
    private void normalizeGraph() {
         Session session = sessionFactory.openSession();
@@ -180,7 +185,7 @@ public class SmuUby extends Uby {
                         SmuSynsetRelation newSsr = new SmuSynsetRelation();
                         
                         newSsr.setDepth(1);
-                        newSsr.setProvenance(SmuUby.getProvenance());
+                        newSsr.setProvenance(SmuUby.getProvenanceId());
                         newSsr.setRelName(inverseRelName);
                         newSsr.setRelType(ssr.getRelType());
                         newSsr.setSource(ssr.getTarget());
@@ -206,86 +211,19 @@ public class SmuUby extends Uby {
         tx.commit();
         session.close();
         
-        log.info("");
-        log.info("Inserted normalized edges:");
+        long totEdges = 0;
+        for (Integer v : relStats.values()){
+            totEdges += v;
+        }
+        
+        log.info("");        
+        log.info("Inserted " + totEdges + " normalized edges:");
         for (String relName : relStats.keySet()){
             log.info("  " + relName + ":   " + relStats.get(relName) );
         }
     }
     
-    /**
-     * 
-     * @deprecated keeping this here just to remember what a horror it was
-     * Adds missing edges for relations we consider as canonical
-     */
-    private void normalizeGraphWithSqlCrap() {
-
-        log.info("Going to normalizing graph with canonical relations ...");
-
-        Session session = sessionFactory.openSession();
-
-        Transaction tx = session.beginTransaction();
-
-        for (String relName : SMATCH_CANONICAL_RELATIONS) {
-
-            log.info("Normalizing graph with canonical relation " + relName + " ...");
-
-            String inverseRelName = SmuUtils.getInverse(relName);
-            log.info("inverse relation name = " + inverseRelName);
-
-/*            String hqlInsert = "INSERT INTO SynsetRelation (source, target, relType, relName, depth, provenance) "
-                    + "  SELECT SR.target, SR.source,  SR.relType, :relName,  1, :provenance"
-                    + "  FROM SynsetRelation SR"; */
-            /* String hqlInsert = "INSERT INTO SynsetRelation (source, target,  relType, relName, idx, depth, provenance) "
-                    + "  SELECT SR.target, SR.source,  SR.relType, '" + relName + "', ROWNUM + 100, 1, '" + getProvenance() + "'"
-                    + "  FROM SynsetRelation SR"; */           
-
-         /*   query.setParameter("relName", "'" + relName + "'")
-                 .setParameter("inverseRelName", "'" +inverseRelName + "'")
-                 .setParameter("provenance", "'" + getProvenance() + "'");
-*/
-            
-            
-            
-            
-            //log.info("Inserted " + createdEntities + " " + relName + " edges.");            
-            
-            String hqlInsert = "INSERT INTO SynsetRelation (synsetId, target,  relType, relName,  depth, provenance) "
-                    + "  SELECT SR.target, SR.synsetId,  SR.relType, " 
-                    + "         '" + relName + "', 1, '" + getProvenance() + "'"
-                    + "  FROM SynsetRelation SR"    
-                   +  "  WHERE" 
-                    + "		   SR.relName='" + inverseRelName + "'"; 
-  /*                  + "	   AND SR.depth=1"  
-                    + "	   AND SR.provenance=''"; */  
-/*                    + "	   AND (SR.target, SR.synsetId) NOT IN " // so
-                    + "			(" 
-                    + "                SELECT (SR2.synsetId, SR2.target)"
-                    + "                FROM SynsetRelation SR2" 
-                    + "                WHERE 	  "
-                    + "				         SR2.relName='"+relName + "'" 
-                    + "                  AND SR2.depth=1"
-                    + "			)"; 
-*/
-            // Query query = session.createQuery(hqlInsert);
-            Query query = session.createSQLQuery(hqlInsert);
-
-         /*   query.setParameter("relName", "'" + relName + "'")
-                 .setParameter("inverseRelName", "'" +inverseRelName + "'")
-                 .setParameter("provenance", "'" + getProvenance() + "'");
-*/
-            int createdEntities = query.executeUpdate();
-            log.info("Inserted " + createdEntities + " " + relName + " edges.");
-
-        }
-
-        tx.commit();
-        session.close();
-
-        log.info("Done normalizing graph with canonical relations.");
-
-    }
-
+  
     /**
      * 
      * @param filepath
@@ -313,7 +251,7 @@ public class SmuUby extends Uby {
     /**
      * Returns the fully qualified package name. 
      */
-    public static String getProvenance(){
+    public static String getProvenanceId(){
         return SmuUby.class.getPackage().getName();
     }
 }
