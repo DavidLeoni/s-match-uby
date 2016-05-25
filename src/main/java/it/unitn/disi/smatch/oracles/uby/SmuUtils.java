@@ -35,12 +35,8 @@ import de.tudarmstadt.ukp.lmf.transform.DBConfig;
  */
 public final class SmuUtils {
 
-    /**
-     * Returns a list of relations used by Smatch, in
-     * {@link de.tudarmstadt.ukp.uby.lmf.model.ERelNameSemantics Uby format}
-     * The list will contain only the canonical relations and not their inverse.
-     */
-    public static final List<String> SMATCH_CANONICAL_RELATIONS = Collections.unmodifiableList(
+
+    private static final List<String> SMATCH_CANONICAL_RELATIONS = Collections.unmodifiableList(
             Arrays.asList(ERelNameSemantics.HYPERNYM,
                     ERelNameSemantics.HYPERNYMINSTANCE,
                     ERelNameSemantics.HOLONYM,
@@ -49,6 +45,17 @@ public final class SmuUtils {
                     ERelNameSemantics.HOLONYMPART,
                     ERelNameSemantics.HOLONYMPORTION,
                     ERelNameSemantics.HOLONYMSUBSTANCE));
+    
+    private static final Map<String, ERelTypeSemantics> SMATCH_CANONICAL_RELATION_TYPES = Collections.unmodifiableMap(
+            SmuUtils.newMap(ERelNameSemantics.HYPERNYM, ERelTypeSemantics.taxonomic,
+                    ERelNameSemantics.HYPERNYMINSTANCE, ERelTypeSemantics.taxonomic,
+                    ERelNameSemantics.HOLONYM, ERelTypeSemantics.partWhole,
+                    ERelNameSemantics.HOLONYMCOMPONENT, ERelTypeSemantics.partWhole,
+                    ERelNameSemantics.HOLONYMMEMBER, ERelTypeSemantics.partWhole,
+                    ERelNameSemantics.HOLONYMPART, ERelTypeSemantics.partWhole,
+                    ERelNameSemantics.HOLONYMPORTION, ERelTypeSemantics.partWhole,
+                    ERelNameSemantics.HOLONYMSUBSTANCE, ERelTypeSemantics.partWhole) );                                                                       
+    
 
     private static Map<String, String> inverseRelations = new HashMap();
 
@@ -558,6 +565,21 @@ public final class SmuUtils {
         return SMATCH_CANONICAL_RELATIONS.contains(relName);
     }
 
+    /**
+     * Returns true if provided relation is canonical
+     * @throws SmuNotFoundException
+     */
+    public static ERelTypeSemantics getCanonicalRelationType(String relName) {
+        
+        ERelTypeSemantics ret = SMATCH_CANONICAL_RELATION_TYPES.get(relName);
+        
+        if (ret == null){
+            throw new SmuNotFoundException("There is no reltaion type associated to relation " + relName);
+        }
+        return ret;
+    }
+    
+    
     public static String toString(@Nullable SynsetRelation sr) {
 
         if (sr == null) {
@@ -577,6 +599,62 @@ public final class SmuUtils {
 
         }
 
+    }
+    
+    /**
+     * Creates a map from key value pairs
+     * 
+     * @since 0.1
+     */
+    public static <V,W> HashMap<V, W> newMap(V v, W w, Object... data){
+        HashMap<V, W> result = new HashMap();
+
+        if(data.length % 2 != 0) 
+            throw new IllegalArgumentException("Odd number of arguments");      
+
+        V key = null;
+        Integer step = -1;
+
+        if (v == null){
+            throw new IllegalArgumentException("Null key value");
+        }
+        
+        result.put(v, w);
+        
+        for(Object d : data){
+            step++;
+            switch(step % 2){
+            case 0: 
+                if(d == null) {
+                    throw new IllegalArgumentException("Null key value");
+                }
+                
+                if (!v.getClass().isInstance(d)){
+                    throw new IllegalArgumentException("Expected key " + d + " to be instance of class " + v.getClass());
+                }
+                key = (V) d;
+                continue;
+            case 1:     
+                if (w != null && !w.getClass().isInstance(d)){
+                    throw new IllegalArgumentException("Expected value " + d + " to be instance of class " + w.getClass());
+                }
+                
+                W val = (W) d;
+                result.put(key, val);
+                break;
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * Returns a list of relations used by Smatch, in
+     * {@link de.tudarmstadt.ukp.uby.lmf.model.ERelNameSemantics Uby format}
+     * The list will contain only the canonical relations and not their inverse.
+     */
+    public static List<String> getCanonicalRelations() {
+        return SMATCH_CANONICAL_RELATIONS;
     }
 
 }

@@ -1,8 +1,11 @@
 package it.unitn.disi.smatch.oracles.uby.test;
 
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+
+import java.util.HashMap;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -53,4 +56,22 @@ public class SmuUtilsTest {
 		}
 	}	
 	
+	
+	@Test
+	public void testNewMap(){
+	    
+	    HashMap<String, Integer> m1 = SmuUtils.newMap("a", 1);	    
+	    assertEquals(Integer.valueOf(1), m1.get("a"));
+	    
+        try {
+            SmuUtils.newMap("a", "b", 3, "f");
+            Assert.fail("Shouldn't arrive here!");
+        } catch (IllegalArgumentException ex){
+            
+        }
+        HashMap<String, Integer> m2 = SmuUtils.newMap("a", 1, "b", 2);     
+        assertEquals(Integer.valueOf(1),  m2.get("a"));
+        assertEquals(Integer.valueOf(2),  m2.get("b"));
+	    
+	}
 }

@@ -1,6 +1,6 @@
 package it.unitn.disi.smatch.oracles.uby.test;
 
-import static it.unitn.disi.smatch.oracles.uby.SmuUtils.SMATCH_CANONICAL_RELATIONS;
+
 
 import org.hibernate.Query;
 import org.hibernate.Session;
@@ -41,7 +41,7 @@ public class HibernateExperimentsTest {
 
         Transaction tx = session.beginTransaction();
 
-        for (String relName : SMATCH_CANONICAL_RELATIONS) {
+        for (String relName : SmuUtils.getCanonicalRelations()) {
 
             log.info("Normalizing graph with canonical relation " + relName + " ...");
 

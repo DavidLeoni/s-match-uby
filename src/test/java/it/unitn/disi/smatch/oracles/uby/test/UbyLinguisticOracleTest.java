@@ -287,7 +287,6 @@ public class UbyLinguisticOracleTest {
 
         uby.augmentGraph();
 
-
         SmuTester.checkEquals(expectedLexicalResource, uby);
         
     }
