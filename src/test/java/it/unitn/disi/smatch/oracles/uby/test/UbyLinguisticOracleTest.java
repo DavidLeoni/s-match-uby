@@ -2,18 +2,8 @@ package it.unitn.disi.smatch.oracles.uby.test;
 
 import static org.junit.Assert.assertEquals;
 import static it.unitn.disi.smatch.oracles.uby.test.LmfBuilder.lmf;
-import de.tudarmstadt.ukp.lmf.transform.LMFDBTransformer;
 import static org.junit.Assert.assertNotNull;
-import static it.unitn.disi.smatch.oracles.uby.SmuUtils.checkNotNull;
-import static it.unitn.disi.smatch.oracles.uby.SmuUtils.checkNotEmpty;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
-
-import javax.annotation.Nullable;
 
 import org.junit.After;
 import org.junit.Before;
@@ -28,24 +18,10 @@ import de.tudarmstadt.ukp.lmf.model.core.LexicalResource;
 import de.tudarmstadt.ukp.lmf.model.core.Lexicon;
 import de.tudarmstadt.ukp.lmf.model.enums.ERelNameSemantics;
 import de.tudarmstadt.ukp.lmf.model.enums.ERelTypeSemantics;
-import de.tudarmstadt.ukp.lmf.model.miscellaneous.ConstraintSet;
-import de.tudarmstadt.ukp.lmf.model.multilingual.SenseAxis;
-import de.tudarmstadt.ukp.lmf.model.semantics.SemanticPredicate;
-import de.tudarmstadt.ukp.lmf.model.semantics.SynSemCorrespondence;
 import de.tudarmstadt.ukp.lmf.model.semantics.Synset;
 import de.tudarmstadt.ukp.lmf.model.semantics.SynsetRelation;
-import de.tudarmstadt.ukp.lmf.model.syntax.SubcategorizationFrame;
-import de.tudarmstadt.ukp.lmf.model.syntax.SubcategorizationFrameSet;
 import de.tudarmstadt.ukp.lmf.transform.DBConfig;
-import de.tudarmstadt.ukp.lmf.transform.XMLToDBTransformer;
-import it.unitn.disi.smatch.IMatchManager;
-import it.unitn.disi.smatch.MatchManager;
 import it.unitn.disi.smatch.SMatchException;
-import it.unitn.disi.smatch.data.ling.ISense;
-import it.unitn.disi.smatch.data.mappings.IContextMapping;
-import it.unitn.disi.smatch.data.mappings.IMappingElement;
-import it.unitn.disi.smatch.data.trees.IContext;
-import it.unitn.disi.smatch.data.trees.INode;
 import it.unitn.disi.smatch.oracles.uby.SmuLinguisticOracle;
 import it.unitn.disi.smatch.oracles.uby.SmuSynsetRelation;
 import it.unitn.disi.smatch.oracles.uby.SmuUby;

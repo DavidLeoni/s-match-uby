@@ -23,12 +23,15 @@ class InsertionStats {
         this.map = new HashMap();
     }
 
-    public void inc(String key){
-        checkNotEmpty(key, "Invalid key!");
-        if (map.containsKey(key)){
-            map.put(key, map.get(key) + 1);
+    /**
+     * Increments provided relation name
+     */
+    public void inc(String relName){
+        checkNotEmpty(relName, "Invalid key!");
+        if (map.containsKey(relName)){
+            map.put(relName, map.get(relName) + 1);
         } else {
-            map.put(key, 1L);
+            map.put(relName, 1L);
         }
     }
 
@@ -45,6 +48,10 @@ class InsertionStats {
         }
     }
 
+    /**
+     * Returns total number of added edges. 
+     * 
+     */
     public long totEdges() {
         long ret = 0;
         for (Long v : map.values()){
@@ -53,18 +60,25 @@ class InsertionStats {
         return ret;
     }
 
-    public void log(Logger log) {
-        log.info("");
+    /**
+     * Returns a nice report of the insertions.
+     */
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+                
         long tot = totEdges();
         if (tot == 0){
-            log.info("   No edges were inserted. ");
+            sb.append("   No edges were inserted. \n");
         } else {
-            log.info("   Inserted " + tot+ " edges:");
+            sb.append("   Inserted " + tot+ " edges:\n");
             for (String relName : relNames()){
-                log.info("        " + relName + ":   " + count(relName) );
+                sb.append("        " + relName + ":   " + count(relName) + "\n");
             }
         }
-        log.info("");
+        sb.append("\n");
+        
+        return sb.toString();
     }    
     
 }

@@ -29,6 +29,12 @@ import de.tudarmstadt.ukp.lmf.transform.XMLToDBTransformer;
 public class SmuUby extends Uby {
 
     private static final Logger log = LoggerFactory.getLogger(SmuUby.class);
+    
+    
+    /**
+     * Amount of items to flush when writing into db with Hibernate.
+     */
+    private static final int BATCH_FLUSH_COUNT = 20;
 
     public SmuUby(DBConfig dbConfig) {
         super(dbConfig);
@@ -59,7 +65,6 @@ public class SmuUby extends Uby {
         computeTransitiveClosure();
 
     }
-
 
     /**
      * Returns {@code true} if {@code source} contains a relation toward
@@ -155,7 +160,7 @@ public class SmuUby extends Uby {
 
             }
 
-            if (++count % 20 == 0) {
+            if (++count % BATCH_FLUSH_COUNT == 0) {
                 // flush a batch of updates and release memory:
                 session.flush();
                 session.clear();
@@ -166,8 +171,9 @@ public class SmuUby extends Uby {
         session.close();
 
         log.info("");
-        log.info("Done normalizing SynsetRelations:");        
-        relStats.log(log);
+        log.info("Done normalizing SynsetRelations:");
+        log.info("");
+        log.info(relStats.toString());
     }
 
     /**
@@ -239,11 +245,11 @@ public class SmuUby extends Uby {
                 source.getSynsetRelations().add(ssr);
                 session.save(ssr);
                 session.saveOrUpdate(source);
-                log.info("Inserted " + ssr.toString());
+                // log.info("Inserted " + ssr.toString());
                 relStats.inc(relName);
                 processedRelationsInCurLevel += 1;
                 
-                if (++count % 20 == 0) {
+                if (++count % BATCH_FLUSH_COUNT == 0) {
                     // flush a batch of updates and release memory:
                     session.flush();
                     session.clear();
@@ -259,7 +265,8 @@ public class SmuUby extends Uby {
         
         log.info("");
         log.info("Done computing transitive closure for SynsetRelations:");
-        relStats.log(log);        
+        log.info("");
+        log.info(relStats.toString());        
     }
 
     /**
