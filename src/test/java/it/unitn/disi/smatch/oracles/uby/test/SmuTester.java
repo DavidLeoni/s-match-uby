@@ -48,7 +48,7 @@ final public class SmuTester {
      * Checks only for elements we care about in S-Match Uby, and only for the
      * ones which are not {@code null} in provided model.
      */
-    public static void checkEquals(LexicalResource lr, Uby uby) {
+    public static void checkDb(LexicalResource lr, Uby uby) {
         SmuUtils.checkNotNull(lr);
 
         LexicalResource ulr = uby.getLexicalResource(lr.getName());

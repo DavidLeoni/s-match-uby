@@ -178,7 +178,7 @@ public class SmuUby extends Uby {
         log.info("Computing transitive closure for SynsetRelations ...");
 
         Session session = sessionFactory.openSession();
-        Transaction tx = session.beginTransaction();
+        Transaction tx = session.beginTransaction();        
 
         InsertionStats relStats = new InsertionStats();
 
@@ -204,14 +204,15 @@ public class SmuUby extends Uby {
                 + "               WHERE "
                 + "                         SR_A.relName = SR_C.relName"
                 + "                    AND  SR_A.source=SR_C.source"
-                + "                    AND  SR_A.target=SR_C.target"                                            
+                + "                    AND  SR_B.target=SR_C.target"                                            
                 + "             )";
 
         
-        int processedRelations = 0;
+        int processedRelationsInCurLevel = 0;
         
         do {
-           
+            processedRelationsInCurLevel = 0;
+
             // log.info("Augmenting SynsetRelation graph with edges of depth " + (depthToSearch + 1) + "  ...");
 
             Query query = session.createQuery(hqlSelect);
@@ -228,17 +229,20 @@ public class SmuUby extends Uby {
                 String relName = (String) results.get(2);
                 
                 SmuSynsetRelation ssr = new SmuSynsetRelation();
-                ssr.setDepth(depthToSearch);
+                ssr.setDepth(depthToSearch + 1);
                 ssr.setProvenance(SmuUby.getProvenanceId());
                 ssr.setRelName(relName);
                 ssr.setRelType(SmuUtils.getCanonicalRelationType(relName));
                 ssr.setSource(source);
                 ssr.setTarget(target);
 
+                source.getSynsetRelations().add(ssr);
                 session.save(ssr);
-                session.update(source);
+                session.saveOrUpdate(source);
+                log.info("Inserted " + ssr.toString());
                 relStats.inc(relName);
-
+                processedRelationsInCurLevel += 1;
+                
                 if (++count % 20 == 0) {
                     // flush a batch of updates and release memory:
                     session.flush();
@@ -248,9 +252,8 @@ public class SmuUby extends Uby {
             
             depthToSearch += 1;
             
-        } while (processedRelations > 0);
+        } while (processedRelationsInCurLevel > 0);
         
-
         tx.commit();
         session.close();
         

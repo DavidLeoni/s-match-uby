@@ -215,34 +215,20 @@ public class UbyLinguisticOracleTest {
         assertEquals(3, smuRel.getDepth());
         assertEquals("a", smuRel.getProvenance());
     };
-
+    
     /**
-     * 
-     * 
-     * lexicalResource 1 -> lexicon 1 -> synset 2 hyponymOf synset 1
-     * 
-     * expect:
-     * 
-     * lexicalResource 1 -> lexicon 1 -> synset 1 hypernymOf synset 2
-     * 
-     */
-    @Test
-    public void testNormalizeNonCanonicalEdge() {
-
+     * Saves provided {@code lexicalResource} to database, normalizes and augments database 
+     * with transitive closure, and tests database actually matches {@code expectedLexicalResource}   
+     * @param lexicalResource
+     * @param expectedLexicalResource
+     */    
+    public void assertAugmentation(
+                LexicalResource lexicalResource,
+                LexicalResource expectedLexicalResource                
+            ){
+        
         SmuUtils.createTables(dbConfig);
 
-        LexicalResource lexicalResource = lmf().lexicon()
-                                               .synset()
-                                               .synset()
-                                               .synsetRelation(ERelNameSemantics.HYPONYM, 1)
-                                               .build();
-
-        LexicalResource expectedLexicalResource = lmf().lexicon()
-                .synset()
-                .synset()
-                .synsetRelation(ERelNameSemantics.HYPONYM, 1)
-                .synsetRelation(ERelNameSemantics.HYPERNYM, 1,2)
-                .build();
 
         SmuUtils.saveLexicalResourceToDb(dbConfig, lexicalResource, "lexical resource 1");
 
@@ -252,24 +238,31 @@ public class UbyLinguisticOracleTest {
 
         uby.augmentGraph();
            
-        SmuTester.checkEquals(expectedLexicalResource, uby);
-        
+        SmuTester.checkDb(expectedLexicalResource, uby);
+                
+    };
+
+    @Test
+    public void testNormalizeNonCanonicalEdge() {
+
+        assertAugmentation(
+                
+                lmf().lexicon()
+                .synset()
+                .synset()
+                .synsetRelation(ERelNameSemantics.HYPONYM, 1)
+                .build(),                 
+                
+                lmf().lexicon()
+                .synset()
+                .synset()
+                .synsetRelation(ERelNameSemantics.HYPONYM, 1)
+                .synsetRelation(ERelNameSemantics.HYPERNYM, 1,2)
+                .build());        
     }
 
-    /**
-     * 
-     * 
-     * lexicalResource 1 -> lexicon 1 -> synset 2 hypernymOf synset 1
-     * 
-     * expect no duplicates, so just
-     * 
-     * lexicalResource 1 -> lexicon 1 -> synset 2 hypernymOf synset 1
-     * 
-     */
     @Test
-    public void testNormalizeDontDuplicate() {
-
-        SmuUtils.createTables(dbConfig);
+    public void testNormalizeCanonicalEdge() {              
 
         LexicalResource lexicalResource = lmf().lexicon()
                                                .synset()
@@ -277,18 +270,103 @@ public class UbyLinguisticOracleTest {
                                                .synsetRelation(ERelNameSemantics.HYPERNYM, 1)
                                                .build();
         
-        LexicalResource expectedLexicalResource = lexicalResource;        
-
-        SmuUtils.saveLexicalResourceToDb(dbConfig, lexicalResource, "lexical resource 1");
-
-        SmuLinguisticOracle oracle = new SmuLinguisticOracle(dbConfig, null);
-
-        SmuUby uby = oracle.getUby();
-
-        uby.augmentGraph();
-
-        SmuTester.checkEquals(expectedLexicalResource, uby);
-        
+        assertAugmentation(lexicalResource, lexicalResource);               
     }
+    
+    @Test
+    public void testNormalizeUnknownEdge() {              
+
+        LexicalResource lexicalResource = lmf().lexicon()
+                                               .synset()
+                                               .synset()
+                                               .synsetRelation("hello", 1)
+                                               .build();
+        
+        assertAugmentation(lexicalResource, lexicalResource);               
+    }
+    
+    
+    @Test
+    public void testTransitiveClosureDepth_2() {
+
+        assertAugmentation(lmf().lexicon()
+                               .synset()
+                               .synset()
+                               .synsetRelation(ERelNameSemantics.HYPERNYM, 1)
+                               .synset()
+                               .synsetRelation(ERelNameSemantics.HYPERNYM, 2)
+                               .build(),
+                               
+                               lmf().lexicon()
+                                .synset()
+                                .synset()
+                                .synsetRelation(ERelNameSemantics.HYPERNYM, 1)
+                                .synset()
+                                .synsetRelation(ERelNameSemantics.HYPERNYM, 2)
+                                .synsetRelation(ERelNameSemantics.HYPERNYM, 1)
+                                .build());              
+    }
+    
+    @Test
+    public void testTransitiveClosureDepth_3() {
+
+        assertAugmentation(lmf().lexicon()
+                               .synset()
+                               .synset()
+                               .synsetRelation(ERelNameSemantics.HYPERNYM, 1)
+                               .synset()
+                               .synsetRelation(ERelNameSemantics.HYPERNYM, 2)
+                               .synset()
+                               .synsetRelation(ERelNameSemantics.HYPERNYM, 3)
+                               
+                               .build(),
+                               
+                               lmf().lexicon()
+                                .synset()
+                                .synset()
+                                .synsetRelation(ERelNameSemantics.HYPERNYM, 1)
+                                .synset()
+                                .synsetRelation(ERelNameSemantics.HYPERNYM, 2)
+                                .synsetRelation(ERelNameSemantics.HYPERNYM, 1)
+                                .synset()
+                                .synsetRelation(ERelNameSemantics.HYPERNYM, 3)
+                                .synsetRelation(ERelNameSemantics.HYPERNYM, 2)
+                                .synsetRelation(ERelNameSemantics.HYPERNYM, 1)
+                                .build());              
+    }
+    
+    @Test
+    public void testTransitiveClosureNoDuplicates() {
+        
+        assertNoAugmentation(lmf().lexicon()
+                .synset()
+                .synset()
+                .synsetRelation(ERelNameSemantics.HYPERNYM, 1)
+                .synset()
+                .synsetRelation(ERelNameSemantics.HYPERNYM, 1)
+                .synsetRelation(ERelNameSemantics.HYPERNYM, 2)                              
+                .build());              
+    }
+    
+    @Test
+    public void testTransitiveClosureIgnoreNonCanonical() {
+        
+        assertNoAugmentation(lmf().lexicon()
+                .synset()
+                .synset()
+                .synsetRelation("a", 1)
+                .synset()                
+                .synsetRelation("a", 2)                              
+                .build());              
+    }
+
+    /**
+     * Asserts the provided lexical resource doesn't provoke any augmentation in the database.
+     */
+    private void assertNoAugmentation(LexicalResource lr) {
+        assertAugmentation(lr, lr);
+    }
+
+    
 
 }

@@ -57,7 +57,7 @@ class InsertionStats {
         log.info("");
         long tot = totEdges();
         if (tot == 0){
-            log.info("   No edge to insert. ");
+            log.info("   No edges were inserted. ");
         } else {
             log.info("   Inserted " + tot+ " edges:");
             for (String relName : relNames()){
